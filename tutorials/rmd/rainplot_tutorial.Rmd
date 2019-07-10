@@ -118,7 +118,7 @@ Another step to improve presentation is to increase the maximum size of each poi
 
 ```{r}
 rainplot + 
-  scale_size_area('P-value', max_size = 12)
+  scale_size_area(expression(paste(-log[10]('P-value'))), max_size = 12)
 ```
 
 ## Additional Plot Adjustments
