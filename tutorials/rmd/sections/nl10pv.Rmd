@@ -1,0 +1,17 @@
+---
+title: "nl10pv"
+author: "Mir Henglin"
+date: "6/25/2019"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+Before plotting, we will first transform `p.value` onto the negative-log scale. This will allow the smallest P-values, which are often of greater interest, to have the largest values when plotted. 
+
+```{r}
+plot_data <- 
+  plot_data %>% 
+  mutate(p.value = -1 * log10(p.value))
+```

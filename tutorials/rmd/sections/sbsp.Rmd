@@ -1,0 +1,16 @@
+---
+title: "Side-by-side plots"
+author: "Mir Henglin"
+date: "7/8/2019"
+output: html_document
+---
+
+## Side-by-side plots
+
+Often, one will want to plot multiple graphs together. We will use the `gridExtra` package to accomplish this. By plotting multiple graphs together, we can easily scale up the information presented in our plots.
+
+A common problem when composing multiple graphs in the same plot is alignment. Graphs will often share common features that need to be aligned, and differences in scale and layout can break that alignemnt when the graphs are plotted together. Thus, an important consideration when creating our graphs plots will be to match the scale and layout of every graph we want to align. A detailed walkthrough of this process can be found in `aligning_plots.rmd`
+
+```{r, message=FALSE, warning=FALSE}
+library(gridExtra)
+```
