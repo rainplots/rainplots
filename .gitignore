@@ -1,6 +1,5 @@
 packrat/lib*/
 .Rproj.user
-eicdata/
-data/
 .DS_Store
 packrat/src/
+.Rhistory
