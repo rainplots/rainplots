@@ -63,7 +63,6 @@ heatmap <-
 
 heatmap
 
-
 ```
 
 We can further improve the plot by using a 'viridis' color palette.
@@ -386,7 +385,7 @@ One might find it desirable to show a heatmap for both P-values and effect sizes
 ```{r}
 
 # 90 degree text and move legend below plot
-multi_heatmap_thm <-
+sbs_heatmap_thm <-
   thm + 
   theme(axis.text.x.top  = element_text(angle = 90),
         legend.position = 'bottom') 
@@ -396,14 +395,14 @@ gcb <-  guides(fill = guide_colorbar(title.position = 'top', barwidth = 15))
 
 pv_heatmap_clo <-
   pv_heatmap_clo +
-  multi_heatmap_thm +
+  sbs_heatmap_thm +
   gcb +
   # Can only use regular text for legend title
   scale_fill_viridis_c('Negative Log10 P-value')
 
 es_heatmap_clo <-
   es_heatmap_clo +
-  multi_heatmap_thm +
+  sbs_heatmap_thm +
   gcb
 
 grid.arrange(pv_heatmap_clo, es_heatmap_clo, ncol = 2)
@@ -416,17 +415,17 @@ grid.arrange(pv_heatmap_clo, es_heatmap_clo, ncol = 2)
 If one wants a single set of y-axis labels for both heatmaps, it can get quite tricky. The naive solution of simply removing one set of y-axis labels does not work, as labels are considered a part of the plot area. Therefore when the heatmaps are plotted adjacent to one another, the heatmap with y-axis labels will appear smaller.
 
 ```{r}
-es_heatmap_clo <-
+es_heatmap_clo_nl <-
   es_heatmap_clo +
   theme(axis.text.y = element_blank())
 
-grid.arrange(pv_heatmap_clo, es_heatmap_clo, ncol = 2)
+grid.arrange(pv_heatmap_clo, es_heatmap_clo_nl, ncol = 2)
 ```
 
 One solution is to create three different plots. Two heatmaps without y-axis labels, and one plot of text that will serve as the labels. 
 
 ```{r}
-pv_heatmap_clo <-
+pv_heatmap_clo_nl <-
   pv_heatmap_clo +
   theme(axis.text.y = element_blank())
 ```
@@ -436,7 +435,7 @@ pv_heatmap_clo <-
 labels <- 
   # Replicate heatmap layout
   ggplot(longest_x_label_data, aes(x = response, y = term)) + 
-  multi_heatmap_thm +
+  sbs_heatmap_thm +
   guides(color = guide_colorbar(title.position = 'top', frame.colour = 'white' )) +
   # Force a colorbar to be drawn to match layout, but add no text
   geom_text(aes(label = '', color = p.value)) +
@@ -458,7 +457,7 @@ labels <-
 
 
 
-grid.arrange(labels, pv_heatmap_clo , es_heatmap_clo , 
+grid.arrange(labels, pv_heatmap_clo_nl , es_heatmap_clo_nl , 
              ncol = 3, 
              widths = c(1.3, 3, 3), # Best values may take some trial and error
              padding = unit(0, 'line')) # Shift plots closer together
@@ -478,7 +477,7 @@ dendro <-
   geom_point(aes(x = response, y = term),
              colour = NA,
              data = longest_x_label_data) +
-  multi_heatmap_thm +
+  sbs_heatmap_thm +
   scale_x_discrete(position = 'top', expand = c(0, 0.2, 0, 0)) +
   # Force color bar to be drawn to match layout
   geom_segment(aes(x = -y + offset, y = x, xend = -yend + offset, yend = xend, color = x),
@@ -502,7 +501,7 @@ dendro <-
 ```
 
 ```{r, fig.width=15, fig.height=15}
-grid.arrange(dendro, labels, pv_heatmap_clo , es_heatmap_clo ,
+grid.arrange(dendro, labels, pv_heatmap_clo_nl , es_heatmap_clo_nl ,
              ncol = 4, 
              widths = c(.6, 0.8, 1.5, 1.5))
 ```

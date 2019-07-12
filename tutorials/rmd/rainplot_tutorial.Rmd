@@ -61,11 +61,11 @@ thm <-
 
 rainplot <- 
   rainplot + 
-  thm + 
   # Move x-axis label to top of plot
   scale_x_discrete(position = 'top') +
   scale_size_area(expression(paste(-log[10]('P-value')))) + 
-  scale_color_continuous('Effect Size Estimate')
+  scale_color_continuous('Effect Size Estimate') +
+  thm 
 
 rainplot
 
@@ -101,7 +101,8 @@ min_lim = -1 * max_lim
 ```
 
 ```{r}
-rainplot <- rainplot +
+rainplot <- 
+  rainplot +
   scale_color_gradientn(
     'Effect Size Estimate',
     colors = palette,
@@ -131,16 +132,16 @@ The points on rainplots can be outlined in a color different from the color of t
 
 rainplot <-
   ggplot(plot_data) +
-  geom_point(aes(x = response, y = term, fill = estimate, size = p.value), 
-             shape = 21) + 
+  geom_point(aes(x = response, y = term, fill = estimate, size = p.value),
+             shape = 21) +
+  scale_x_discrete(position = 'top') +
+  scale_size_area(expression(paste(-log[10]('P-value'))), max_size = 12) +
   scale_fill_gradientn(
     'Effect Size Estimate',
     colors = palette,
     limits = c(min_lim, max_lim),
     breaks = c(min_lim, min_lim / 2, 0 , max_lim / 2, max_lim)
   ) +
-  scale_size_area(expression(paste(-log[10]('P-value'))), max_size = 12) +
-  scale_x_discrete(position = 'top') +
   thm
 
 rainplot
@@ -159,20 +160,19 @@ plot_data_thresholded <-
 rainplot <-
   # Use the thresholded data
   ggplot(plot_data_thresholded) +
-  geom_point(aes(x = response, y = term, colour = estimate, size = p.value)) +
+  geom_point(aes(x = response, y = term, color = estimate, size = p.value)) +
   scale_x_discrete(position = 'top') +
+  scale_size_area(
+    expression(paste(-log[10]('P-value'))),
+    max_size = 12,
+    breaks = c(5, 10, 15),
+    labels = c('5', '10', '>=15')) +
   scale_color_gradientn(
     'Effect Size Estimate',
     colors = palette,
     limits = c(min_lim, max_lim),
     breaks = c(min_lim, min_lim / 2, 0 , max_lim / 2, max_lim)
   ) +
-  # Set the legend breaks and labels to account for the thresholding
-  scale_size_area(
-    expression(paste(-log[10]('P-value'))), 
-    max_size = 12,
-    breaks = c(5, 10, 15), 
-    labels = c('5', '10', '>=15')) +
   thm
 
 rainplot
@@ -204,18 +204,19 @@ plot_data_pvo <-
 ```
 
 ```{r}
+
 rainplot <-
   # Use the data with the term column ordered by mean P-value
   ggplot(plot_data_pvo) +
   geom_point(aes(x = response, y = term, colour = estimate, size = p.value)) +
+  scale_x_discrete(position = 'top') +
+  scale_size_area(expression(paste(-log[10]('P-value'))), max_size = 12) +
   scale_color_gradientn(
     'Effect Size Estimate',
     colors = palette,
     limits = c(min_lim, max_lim),
     breaks = c(min_lim, min_lim / 2, 0 , max_lim / 2, max_lim)
   ) +
-  scale_size_area(expression(paste(-log[10]('P-value'))), max_size = 12) +
-  scale_x_discrete(position = 'top') +
   thm
 
 rainplot
@@ -272,14 +273,14 @@ rainplot <-
   # Use cluter ordered data
   ggplot(plot_data_clo) +
   geom_point(aes(x = response, y = term, colour = estimate, size = p.value)) +
+  scale_x_discrete(position = 'top') +
+  scale_size_area(expression(paste(-log[10]('P-value'))), max_size = 12) +
   scale_color_gradientn(
     'Effect Size Estimate',
     colors = palette,
     limits = c(min_lim, max_lim),
     breaks = c(min_lim, min_lim / 2, 0 , max_lim / 2, max_lim)
   ) +
-  scale_size_area(expression(paste(-log[10]('P-value'))), max_size = 12) +
-  scale_x_discrete(position = 'top') +
   thm
 
 rainplot
