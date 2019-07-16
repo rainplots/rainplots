@@ -95,6 +95,12 @@ Hash: 3f9c63b2e40ea80716bbf249d9eeb9f4
 Requires: digest, gtable, lazyeval, reshape2, rlang, scales, tibble,
     viridisLite, withr
 
+Package: ggrepel
+Source: CRAN
+Version: 0.8.1
+Hash: b6ed8e5dde37a8b11a48d43834ed485f
+Requires: Rcpp, ggplot2, scales
+
 Package: glue
 Source: CRAN
 Version: 1.3.1
