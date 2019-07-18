@@ -32,7 +32,7 @@ Tutorials completed:
 
 - [X] Rainplots
 - [X] Heatmaps
-- [] Manhattan plots
+- [X] Manhattan plots
 - [X] Volcano plots
 - [] Spark-and-scatter plots
 - [] In depth side-by-side plots
