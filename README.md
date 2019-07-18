@@ -32,8 +32,8 @@ Tutorials completed:
 
 - [X] Rainplots
 - [X] Heatmaps
-- [] Manhattan plots
-- [] Volcano plots
+- [X] Manhattan plots
+- [X] Volcano plots
 - [] Spark-and-scatter plots
 - [] In depth side-by-side plots
 
@@ -74,7 +74,8 @@ install.packages(
   'tidyr',
   'ggdendro',
   'gridExtra',
-  'ggplot2'
+  'ggplot2',
+  'ggrepel'
 )
 ```
 

@@ -1,0 +1,308 @@
+---
+title: "Plotting Manhattan Plots"
+author: "Mir Henglin"
+date: "7/15/2019"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.height = 10, fig.width = 10, fig.align = "center")
+```
+
+```{r data_intro, child = 'sections/tdi4.Rmd'}
+```
+
+```{r nl10pv, child = 'sections/nl10pv.Rmd'}
+```
+
+
+## Plotting
+
+A basic Manhattan plot can be constructed in only two lines of `ggplot2` code!
+
+```{r}
+
+manhattan_plot <-
+  ggplot(plot_data) +
+  geom_point(aes(x = term, y = p.value))
+
+manhattan_plot
+
+```
+
+This is a good start, but we want to clean up layout and presentation. We can do this by creating a custom `ggplot2` theme and adjusting scales and layout.
+
+```{r}
+thm <-
+  # Good starting theme + set text size
+  theme_light(base_size = 18) +
+  theme(
+    # Remove x-axis text
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    # Remove Vertical Grid Lines
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.line = element_blank(),
+    # White background
+    panel.background = element_rect(fill = 'white'),
+    plot.background = element_rect(fill = 'white')
+  )
+
+```
+
+
+```{r}
+manhattan_plot <-
+  manhattan_plot + 
+  scale_y_continuous(
+    expression(paste(-log[10]('P-value'))),
+    # These `limits` and `expand` set the bottom of the plot to be '0' while
+    # maintaining spacing at the top of the plot.
+    limits = c(0, NA), 
+    expand = expand_scale(mult = c(0, 0.05))
+  ) +
+  thm
+
+manhattan_plot
+```
+
+
+## Faceting
+
+The above code creates a single Manhattan plot. However, our data consists of results obtained by comparing a set of metabolites against multiple biological measures of interest. A single plot therefore contains the same `term` plotted multiple times, once for each biological measure of interest To remove this possibly confusing duplication, we can create a Manhattan plot for each different biological measure of interest in our data. Luckily, `ggplot2` makes this very easy through 'faceting'.
+
+```{r}
+manhattan_plot_facet <-
+  manhattan_plot +
+  facet_wrap(~response)
+
+manhattan_plot_facet
+```
+
+Despite the simplicity of this technique, this is not the most common way that Manhattan plots are presented. Typically, each set of results is plotted adjacent to every other set of results. Adjacent sets of results are colored in a way that makes them distinct. We can create this style of Manhattan plot, but it will need some manual calculation and fiddling.
+
+```{r}
+n_terms <-
+  n_distinct(plot_data$term)
+
+# Space between sets of results
+buffer <- n_terms/4
+
+model_set_spacing <-
+  plot_data %>% 
+  distinct(response) %>% 
+  # Assign each set of results to a block
+  mutate(block = 1:n() - 1) %>% 
+  # Calculate the center location of each set of results
+  mutate(center = block * n_terms + block * buffer + median(1:n_terms)) %>%
+  # Assign each set of results to a color. Here, using alternating colors
+  mutate(color_group = as.factor(rep_len(c(0, 1), length.out = n())))
+
+# Calculate the position of each `term` relative to the median 
+# (median set to be (0)
+term_position <-
+  plot_data %>% 
+  distinct(term) %>% 
+  arrange(term) %>% 
+  mutate(x = 1:n() - 1) %>% 
+  mutate(x = x - median(x))
+
+plot_data <-
+  plot_data %>% 
+  left_join(model_set_spacing, by = 'response') %>% 
+  left_join(term_position, by = 'term') 
+
+# Combine relative positioning of each term with the center of each set of
+# results to calculate each final term's positioning
+plot_data <-
+  plot_data %>% 
+  mutate(x = x + center)
+
+head(plot_data)
+```
+
+```{r}
+
+# This theme is different from the previous theme only in that it keeps x-axis
+# text and ticks
+thm <-
+  theme_light(base_size = 18) +
+  theme(
+    axis.title.x = element_blank(),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    # Remove Vertical Grid Lines
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.line = element_blank(),
+    # White background
+    panel.background = element_rect(fill = 'white'),
+    plot.background = element_rect(fill = 'white')
+  )
+
+```
+
+```{r}
+manhattan_plot <-
+  ggplot(plot_data) +
+  # Use the calculated x position and color
+  geom_point(aes(x = x, y = p.value, color = color_group)) + 
+  scale_y_continuous(
+    expression(paste(-log[10]('P-value'))), 
+    limits = c(0, NA),
+    expand = expand_scale(mult = c(0, 0.05))) +
+  # Use the x labels to mark the `response` each set of results corresponds to
+  scale_x_continuous(
+    breaks = model_set_spacing$center, 
+    labels = model_set_spacing$response
+  ) +
+  # Remove color legend
+  scale_color_discrete(guide = FALSE) + 
+  thm
+
+
+manhattan_plot
+```
+
+We can also add vertical lines to better group the points corresponding to each set of results.
+
+```{r}
+manhattan_plot <-
+  manhattan_plot +
+  # Add the first vertical line
+  geom_vline(
+    xintercept = -buffer/2, 
+    colour = 'lightblue', 
+    alpha = 0.5, 
+    linetype = 2
+  ) +
+  # Add every other one
+  geom_vline(
+    aes(xintercept = c(center + median(1:n_terms) + buffer/2)),
+    colour = 'lightblue', 
+    alpha = 0.5, 
+    linetype = 2
+  )
+
+manhattan_plot
+```
+
+
+## Additional Plot Adjustments
+
+### Point Size
+
+Depending on the number of values being plotted at once, we may want to adjust the plotted points to be larger or smaller. This can be done through the `size` argument to `geom_point`.
+
+```{r}
+# Assigning these scales to variables saves typing and allows focus on what is
+# changing between plots
+
+scales_thm_and_vlines <-
+  list(
+    scale_x_continuous(
+      breaks = model_set_spacing$center, 
+      labels = model_set_spacing$response
+    ),
+    
+    scale_y_continuous(
+      expression(paste(-log[10]('P-value'))),
+      limits = c(0, NA),
+      expand = expand_scale(mult = c(0, 0.05))
+    ),
+    
+    scale_color_discrete(guide = FALSE),
+    
+    geom_vline(
+      xintercept = -buffer/2, 
+      colour = 'lightblue', 
+      alpha = 0.5, 
+      linetype = 2
+    ) ,
+    
+    geom_vline(
+      aes(xintercept = c(center + median(1:n_terms) + buffer/2)),
+      colour = 'lightblue', 
+      alpha = 0.5, 
+      linetype = 2
+    ),
+    
+    thm
+  )
+```
+
+```{r}
+manhattan_plot_size <-
+  ggplot(plot_data) +
+  geom_point(aes(x = x, y = p.value, color = color_group), size = 4) + 
+  scales_thm_and_vlines
+
+manhattan_plot_size
+```
+
+### Marking values of interest
+
+#### Lines
+
+We can add lines marking the P-value threshold such that all metabolites are considered 'of interest' if they have values more extreme than the threshold. In this case, we set the P-value threshold to 15.
+
+```{r}
+pv_threshold <- 15
+
+manhattan_plot_line <-
+  ggplot(plot_data) +
+  geom_point(aes(x = x, y = p.value, color = color_group)) + 
+  # Add P-value threshold line
+  geom_hline(
+    yintercept = pv_threshold, 
+    colour = 'lightblue'
+  ) +
+  scales_thm_and_vlines
+
+
+manhattan_plot_line
+```
+
+
+#### Annotating values of interest
+
+We may want to label the points that are of interest. While labeling every point in the plot would create unpleasant clutter, labeling the most extreme points is an easy way to increase the information conveyed by a Manhattan plot without making it unreadable. To do so, we will need to create a label column that contains the desired label text and is `NA` for points that should not be labeled. To plot the labels, we will be using `geom_text_repel` from the `ggrepel` package. Thus function automatically places labels such that they do not overlap, making it a valuable function when values of interest are positioned close together.
+
+```{r}
+library(ggrepel)
+```
+
+```{r}
+# Identify all results with P-value > 15
+plot_data <-
+  plot_data %>%
+  mutate(extreme = p.value > pv_threshold) 
+
+```
+
+```{r}
+# Create label consisting of the metabolite ID and the effect size estimate
+plot_data <-
+  plot_data %>% 
+  mutate(label = ifelse(!extreme, NA, paste0(term, ', ESE: ', estimate)))
+```
+
+```{r}
+manhattan_plot_line_label <-
+  # Use the new data
+  ggplot(plot_data) +
+  geom_point(aes(x = x, y = p.value, color = color_group)) + 
+  geom_hline(
+    yintercept = pv_threshold, 
+    colour = 'lightblue'
+  ) +
+  # Adding labels last draws them on top of threshold lines
+  geom_text_repel(aes(x = x, y = p.value, label = label), box.padding = 0.1) +
+  scales_thm_and_vlines
+
+manhattan_plot_line_label
+```
