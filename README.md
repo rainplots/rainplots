@@ -73,7 +73,7 @@ install.packages(
   'dplyr',
   'tidyr',
   'ggdendro',
-  'gridExtra',
+  'egg',
   'ggplot2',
   'ggrepel'
 )
