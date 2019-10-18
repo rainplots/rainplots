@@ -1,7 +1,7 @@
 ---
 title: "Plotting Rainplots"
 author: "Mir Henglin"
-date: "July 09, 2019"
+date: "October 18, 2019"
 output:
   html_document: default
   pdf_document: default
@@ -317,66 +317,40 @@ The default dendrogram points down. To put the dendrogram on the left of our plo
 ```{r}
 dendro <-
   ggplot(dendro_dat) +
-  geom_segment(aes(x = -y, y = x, xend=-yend, yend=xend), colour = 'black')
+  geom_segment(aes(x = -y, y = x, xend = -yend, yend = xend), colour = 'black')
 
 dendro
 ```
 
-Before plotting our dendrogram and rainplot side-by-side, we need to first create a version of our dendrogram with the same scale and layout as our rainplot
+Before plotting our dendrogram and rainplot side-by-side, we need to first create a version of our dendrogram with the same scale as our rainplot
 
 ```{r}
-
-# Taking only the column with the longest label maintains alignment while
-# simplifying plot layout
-x_labels <- 
-  plot_data_clo$response %>% 
-  unique()
-
-longest_x_label <-
-  x_labels[[which.max(nchar(x_labels))]]
-
-longest_x_label_data <-
-  plot_data %>% 
-  filter(response == longest_x_label)
-
-```
-
-```{r}
-# Align the top of the dendrogram with the x-axis label
-max_dendro <-
-  max(abs(c(dendro_dat$y, dendro_dat$yend)))
-
-offset <- max_dendro + 1
-```
-
-
-```{r}
-
 dendro <-
-  # Empty ggplot with same layout and scale as rainplot
-  ggplot() +
-  geom_blank(aes(x = response, y = term), data = longest_x_label_data) + 
-  thm +
+  ggplot(dendro_dat) +
+  # Empty ggplot with same y-scale as rainplot
+  geom_blank(aes(y = term), data = plot_data) +
+  geom_segment(aes(x = -y, y = x, xend = -yend, yend = xend), colour = 'black')
+
+
+
+
+```
+
+```{r}
+ggarrange(dendro, rainplot, ncol = 2, widths = c(1, 2))
+```
+
+Finally, we cleanup the dendrogram using `theme_dendro` and removing excess blank space.
+
+```{r}
+dendro <-
+  dendro +
+  theme_dendro() +
   # 'expand' controls whitespace around the dendrogram. The non-zero argument
   # may need to be increasesed if the line thickness of the dendrogram is
   # increased to make sure the entire dendrogram is plotted
-  scale_x_discrete(position = 'top', expand = c(0, 0.02, 0, 0)) +
-  # Draw dendrogram
-  geom_segment(aes(x = (-y + offset), y = x, xend = (-yend + offset), yend=xend),
-               colour = 'black', 
-               data = dendro_dat) +
-  # Mave invisble unnessecary plot layout.
-  theme(legend.position = 'none',
-        axis.text.y = element_blank(),
-        axis.text.x = element_text(colour = 'white'),
-        panel.grid = element_blank(),
-        panel.border = element_rect(fill = NA, colour = 'white')
-  )  
+  scale_x_discrete(position = 'top', expand = c(0, 0.02, 0, 0)) 
 
-
-
-grid.arrange(dendro, rainplot, ncol = 2, widths = c(3, 15)) 
+ggarrange(dendro, rainplot, ncol = 2, widths = c(1, 2))
 ```
-
-
 

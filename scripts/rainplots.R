@@ -2,7 +2,7 @@
 library(dplyr)
 library(tidyr)
 library(ggdendro)
-library(gridExtra)
+library(egg)
 library(ggplot2)
 
 # Import ------------------------------------------------------------------
@@ -236,47 +236,22 @@ print(rainplot)
 
 dendro_dat <- segment(dendro_data(clust))
 
-# Taking only the column with the longest label maintains alignment while
-# simplifying plot layout
-x_labels <-
-  plot_data_clo$response %>%
-  unique()
-
-longest_x_label <-
-  x_labels[[which.max(nchar(x_labels))]]
-
-longest_x_label_data <-
-  plot_data %>%
-  filter(response == longest_x_label)
-
-# Align the top of the dendrogram with the x-axis label
-max_dendro <-
-  max(abs(c(dendro_dat$y, dendro_dat$yend)))
-
-offset <- max_dendro + 1
 
 dendro <-
-  # Empty ggplot with same layout and scale as rainplot
+  # Empty ggplot with same y-scale as rainplot
   ggplot() +
-  geom_blank(aes(x = response, y = term), data = longest_x_label_data) +
-  thm +
+  geom_blank(aes(y = term), data = plot_data) +
+  theme_dendro() +
   # 'expand' controls whitespace around the dendrogram. The non-zero argument
   # may need to be increasesed if the line thickness of the dendrogram is
   # increased to make sure the entire dendrogram is plotted
   scale_x_discrete(position = 'top', expand = c(0, 0.03, 0, 0)) +
   # Draw dendrogram
-  geom_segment(aes(x = (-y + offset), y = x, xend = (-yend + offset), yend=xend),
+  geom_segment(aes(x = -y, y = x, xend = -yend, yend = xend),
                colour = 'black',
-               data = dendro_dat) +
-  # Mave invisble unnessecary plot layout.
-  theme(legend.position = 'none',
-        axis.text.y = element_blank(),
-        axis.text.x = element_text(colour = 'white'),
-        panel.grid = element_blank(),
-        panel.border = element_rect(fill = NA, colour = 'white')
-  )
+               data = dendro_dat)
 
 
-grid.arrange(dendro, rainplot, ncol = 2, widths = c(3, 15))
+ggarrange(dendro, rainplot, ncol = 2, widths = c(1, 5))
 
 

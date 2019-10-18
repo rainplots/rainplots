@@ -66,6 +66,12 @@ Hash: 4bab66291ba8f2600cfacde55cef23b9
 Requires: BH, R6, Rcpp, assertthat, glue, magrittr, pkgconfig, plogr,
     rlang, tibble, tidyselect
 
+Package: egg
+Source: CRAN
+Version: 0.4.5
+Hash: 06272cd702d468cf5cf2f90a54447415
+Requires: ggplot2, gridExtra, gtable
+
 Package: ellipsis
 Source: CRAN
 Version: 0.2.0.1
