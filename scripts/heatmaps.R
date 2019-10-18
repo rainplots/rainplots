@@ -2,7 +2,7 @@
 library(dplyr)
 library(tidyr)
 library(ggdendro)
-library(gridExtra)
+library(egg)
 library(ggplot2)
 
 # Import ------------------------------------------------------------------
@@ -247,48 +247,23 @@ es_heatmap_clo
 
 dendro_dat <- segment(dendro_data(clust))
 
-# Taking only the column with the longest label maintains alignment while
-# simplifying plot layout
-x_labels <-
-  plot_data_clo$response %>%
-  unique()
-
-longest_x_label <-
-  x_labels[[which.max(nchar(x_labels))]]
-
-longest_x_label_data <-
-  plot_data %>%
-  filter(response == longest_x_label)
-
-# Align the top of the dendrogram with the x-axis label
-max_dendro <-
-  max(abs(c(dendro_dat$y, dendro_dat$yend)))
-
-offset <- max_dendro + 1
 
 dendro <-
-  # Empty ggplot with same layout and scale as heatmap
+  # Empty ggplot with same layout and y-scale as heatmap
   ggplot() +
-  geom_blank(aes(x = response, y = term), data = longest_x_label_data) +
-  thm +
+  geom_blank(aes(y = term), data = plot_data) +
+  theme_dendro() +
   # 'expand' controls whitespace around the dendrogram. The non-zero argument
   # may need to be increasesed if the line thickness of the dendrogram is
   # increased to make sure the entire dendrogram is plotted
   scale_x_discrete(position = 'top', expand = c(0, 0.03, 0, 0)) +
   # Draw dendrogram
-  geom_segment(aes(x = (-y + offset), y = x, xend = (-yend + offset), yend=xend),
+  geom_segment(aes(x = -y, y = x, xend = -yend, yend = xend),
                colour = 'black',
-               data = dendro_dat) +
-  # Mave invisble unnessecary plot layout.
-  theme(legend.position = 'none',
-        axis.text.y = element_blank(),
-        axis.text.x = element_text(colour = 'white'),
-        panel.grid = element_blank(),
-        panel.border = element_rect(fill = NA, colour = 'white')
-  )
+               data = dendro_dat)
 
 
-grid.arrange(dendro, es_heatmap_clo, ncol = 2, widths = c(3, 15))
+ggarrange(dendro, es_heatmap_clo, ncol = 2, widths = c(3, 15))
 
 
 # Side-by-Side Heatmaps ---------------------------------------------------
@@ -315,81 +290,23 @@ es_heatmap_clo <-
   sbs_heatmap_thm +
   gcb
 
-grid.arrange(pv_heatmap_clo, es_heatmap_clo, ncol = 2)
+ggarrange(pv_heatmap_clo, es_heatmap_clo, ncol = 2)
 
 
 # One Set of Y-Axis Labels for Side-by-Side Heatmaps ----------------------
 
-pv_heatmap_clo_nl <-
-  pv_heatmap_clo +
-  theme(axis.text.y = element_blank())
 
 es_heatmap_clo_nl <-
   es_heatmap_clo +
   theme(axis.text.y = element_blank())
 
 
-labels <-
-  # Replicate heatmap layout
-  ggplot(longest_x_label_data, aes(x = response, y = term)) +
-  sbs_heatmap_thm +
-  guides(color = guide_colorbar(title.position = 'top', frame.colour = 'white' )) +
-  # Force a colorbar to be drawn to match layout, but add no text
-  geom_text(aes(label = '', color = p.value)) +
-  # Plot the text labels in black
-  geom_text(aes(label = term), color = 'black', hjust = 'right', size = 5) +
-  # Remove whitespace to left of text
-  scale_x_discrete(position = 'top', expand = c(1, 0, 0, 0)) +
-  # Make invisible the unnessecary plot layout
-  guides(color = guide_colorbar(title.position = 'top', frame.colour = 'white' )) +
-  scale_color_gradient(low = 'white', high = 'white') +
-  theme(
-    legend.text = element_text(colour = 'white'),
-    legend.title = element_text(colour = 'white'),
-    panel.grid = element_blank(),
-    panel.border = element_rect(fill = NA, colour = 'white'),
-    axis.text.x = element_text(colour = 'white'),
-    axis.text.y = element_blank(),
-  )
-
-
-grid.arrange(labels, pv_heatmap_clo_nl , es_heatmap_clo_nl,
-             ncol = 3,
-             widths = c(1.3, 3, 3), # Best values may take some trial and error
-             padding = unit(0, 'line')) # Shift plots closer together
+ggarrange(pv_heatmap_clo, es_heatmap_clo_nl, ncol = 2)
 # Dendrogram and Side-by-Side Heatmaps ------------------------------------
 
-dendro <-
-  ggplot()  +
-  # match layout
-  geom_point(aes(x = response, y = term),
-             colour = NA,
-             data = longest_x_label_data) +
-  sbs_heatmap_thm +
-  scale_x_discrete(position = 'top', expand = c(0, 0.2, 0, 0)) +
-  # Force color bar to be drawn to match layout
-  geom_segment(aes(x = -y + offset, y = x, xend = -yend + offset, yend = xend, color = x),
-               data = dendro_dat) +
-  # draw black dendrogram on top
-  geom_segment(aes(x = -y + offset, y = x, xend = -yend + offset, yend = xend),
-               colour = 'black',
-               data = dendro_dat) +
-  # Make invisible the unnessecary plot layout
-  guides(color = guide_colorbar(title.position = 'top', frame.colour = 'white' )) +
-  scale_color_gradient(low = 'white', high = 'white') +
-  theme(
-    legend.text = element_text(colour = 'white'),
-    legend.title = element_text(colour = 'white'),
-    panel.grid = element_blank(),
-    panel.border = element_rect(fill = NA, colour = 'white'),
-    axis.text.x = element_text(colour = 'white'),
-    axis.text.y = element_blank()
-  )
-
-grid.arrange(dendro, labels, pv_heatmap_clo_nl, es_heatmap_clo_nl,
-             ncol = 4,
-             widths = c(0.6, 0.8, 1.5, 1.5),
-             padding = unit(0, 'line'))
+ggarrange(dendro, pv_heatmap_clo, es_heatmap_clo_nl,
+             ncol = 3,
+             widths = c(1, 2, 2))
 
 
 
